@@ -1,6 +1,7 @@
 #
 # setup.py
 #
+# Copyright (C) 2012 Calum Lind <calumlind@gmail.com>
 # Copyright (C) 2009 Ray Chen <chenrano2002@gmail.com>
 #
 # Basic plugin template created by:
@@ -40,13 +41,17 @@
 from setuptools import setup
 
 __plugin_name__ = "AutoShutdown"
-__author__ = "Ray Chen"
-__author_email__ = "chenrano2002@gmail.com"
-__version__ = "0.1"
-__url__ = "http://blogold.chinaunix.net/u2/68938/showart_1900332.html"
+__author__ = "Calum Lind"
+__author_email__ = "calumlind@gmail.com"
+__version__ = "1.0"
+__url__ = "github"
 __license__ = "GPLv3"
-__description__ = ""
-__long_description__ = """"""
+__description__ = "Shutdown your system once torrents are complete"
+__long_description__ = """
+A plugin to automatically suspend, hibernate or shutdown your system.
+
+Works on Linux and Windows but not OS X.
+"""
 __pkg_data__ = {__plugin_name__.lower(): ["template/*", "data/*"]}
 
 setup(
