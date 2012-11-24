@@ -70,7 +70,7 @@ SYSTEM_STATES = {
 }
 
 DEFAULT_PREFS = {
-    "enabled"           : True
+    "enabled"           : True,
     "system_state"      : None,
     "can_hibernate"     : False,
     "can_suspend"       : False
@@ -92,7 +92,7 @@ class Core(CorePluginBase):
                 bus = dbus.SystemBus()
                 self.bus_obj = bus.get_object(bus_name, bus_path)
             except:
-                log.debug("[AutoShutDown] Fallback to old freedesktop power management")
+                log.debug("[AutoShutDown] Fallback to older dbus PowerManagement")
                 self.bus_name = POWERMAN
                 bus_path = POWERMAN_PATH
                 bus = dbus.Bus(dbus.Bus.TYPE_SESSION)
@@ -103,6 +103,7 @@ class Core(CorePluginBase):
 
         self.config = deluge.configmanager.ConfigManager("autoshutdown.conf", DEFAULT_PREFS)
         self.check_suspend_hibernate_flags()
+
         component.get("AlertManager").register_handler("torrent_finished_alert",
                                                         self.on_alert_torrent_finished)
 
@@ -112,21 +113,21 @@ class Core(CorePluginBase):
         self.config.save()
 
     def on_alert_torrent_finished(self, alert):
-        log.debug("[AutoShutDown] Alter for every torrent finished")
+        log.debug("[AutoShutDown] Update for every torrent finished")
 
-        # cal how many of torrent right now
-        all_torrents = component.get("TorrentManager").get_torrent_list()
-        self.total_torrents = len(all_torrents)
-        log.info("Now total torrents:%s", self.total_torrents)
+        # calc how many of torrent right now
+        downloading_torrents = component.get("Core").get_torrents_status({"state": "Downloading"}, ["name"])
+        #all_torrents = component.get("TorrentManager").get_torrent_list()
+        #self.total_torrents = len(all_torrents)
+        log.info("Now total torrents:%s", len(downloading_torrents))
 
         # Get the torrent_id
-        torrent_id = str(alert.handle.info_hash())
-        # reduce one
-        self.total_torrents = self.total_torrents - 1
-        log.debug("[AutoShutDown] %s is finished..%s", torrent_id, self.total_torrents)
+        #torrent_id = str(alert.handle.info_hash())
+        # reduce total by one
+        log.debug("[AutoShutDown] %s is finished..%s", alert.handle.info_hash(), len(downloading_torrents))
 
         # when the number of all torrents is 0, then poweroff.
-        if self.total_torrents == 0 :
+        if not downloading_torrents:
             self.power_action()
 
     def power_action(self):
@@ -207,7 +208,8 @@ class Core(CorePluginBase):
                 log.error("Unable to determine Suspend or Hibernate flags")
                 #alternative if powerman does not work?
                 #/org/freedesktop/PowerManagement org.freedesktop.PowerManagement.CanSuspend
-        log.debug("[AutoShutDown] Set Power Flags, Suspend: %s, Hibernate: %s", self.config["can_hibernate"], self.config["can_suspend"])
+        log.debug("[AutoShutDown] Set Power Flags, Suspend: %s, Hibernate: %s",
+                    self.config["can_hibernate"], self.config["can_suspend"])
 
     def update(self):
         pass
