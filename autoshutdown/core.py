@@ -38,7 +38,6 @@
 #    statement from all source files in the program, then also delete it here.
 #
 
-
 from deluge.log import LOG as log
 from deluge.plugins.pluginbase import CorePluginBase
 import deluge.component as component
@@ -62,12 +61,6 @@ else:
     UPOWER_PATH = "/org/freedesktop/UPower"
     POWERMAN = 'org.freedesktop.PowerManagement'
     POWERMAN_PATH = '/org/freedesktop/PowerManagement'
-
-SYSTEM_STATES = {
-    "suspend": _("Suspend"),
-    "hibernate": _("Hibernate"),
-    "shutdown": _("Shutdown"),
-}
 
 DEFAULT_PREFS = {
     "enabled"           : True,
@@ -104,15 +97,15 @@ class Core(CorePluginBase):
         self.config = deluge.configmanager.ConfigManager("autoshutdown.conf", DEFAULT_PREFS)
         self.check_suspend_hibernate_flags()
 
-        component.get("AlertManager").register_handler("torrent_finished_alert",
-                                                        self.on_alert_torrent_finished)
+        component.get("EventManager").register_handler("TorrentFinishedEvent",
+                                                        self.on_event_torrent_finished)
 
     def disable(self):
         log.debug("[AutoShutDown] Disabling AutoShutDown...")
-        component.get("AlertManager").deregister_handler(self.on_alert_torrent_finished)
+        component.get("EventManager").deregister_handler(self.on_event_torrent_finished)
         self.config.save()
 
-    def on_alert_torrent_finished(self, alert):
+    def on_event_torrent_finished(self, alert):
         log.debug("[AutoShutDown] Update for every torrent finished")
 
         # calc how many of torrent right now
