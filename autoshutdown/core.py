@@ -71,9 +71,9 @@ DEFAULT_PREFS = {
 
 class Core(CorePluginBase):
     def enable(self):
-        log.debug("[AutoShutDown] Enabling Plugin...")
+        log.debug("[AutoShutDown] Enabling plugin...")
         if osx_check():
-            log.debug("[AutoShutDown] OSX not currently supported")
+            log.error("[AutoShutDown] OSX not currently supported")
             #Using subprocess could call osascript
             #subprocess.call(['osascript', '-e', 'tell app "System Events" to shut down'])
             self.disable()
@@ -100,25 +100,15 @@ class Core(CorePluginBase):
         component.get("EventManager").register_event_handler("TorrentFinishedEvent", self.on_event_torrent_finished)
 
     def disable(self):
-        log.debug("[AutoShutDown] Disabling AutoShutDown...")
+        log.debug("[AutoShutDown] Disabling plugin...")
         component.get("EventManager").deregister_event_handler(self.on_event_torrent_finished)
         self.config.save()
 
-    def on_event_torrent_finished(self, alert):
-        log.debug("[AutoShutDown] Update for every torrent finished")
-
+    def on_event_torrent_finished(self, torrent_id):
+        log.debug("[AutoShutDown] Torrent finished event for %s", torrent_id)
         # calc how many of torrent right now
         downloading_torrents = component.get("Core").get_torrents_status({"state": "Downloading"}, ["name"])
-        #all_torrents = component.get("TorrentManager").get_torrent_list()
-        #self.total_torrents = len(all_torrents)
-        log.info("Now total torrents:%s", len(downloading_torrents))
-
-        # Get the torrent_id
-        #torrent_id = str(alert.handle.info_hash())
-        # reduce total by one
-        log.debug("[AutoShutDown] %s is finished..%s", alert.handle.info_hash(), len(downloading_torrents))
-
-        # when the number of all torrents is 0, then poweroff.
+        log.info("[AutoShutDown]Total torrents waiting to complete: %s", len(downloading_torrents))
         if not downloading_torrents:
             self.power_action()
 
@@ -134,7 +124,7 @@ class Core(CorePluginBase):
             self.os_suspend()
 
     def os_suspend(self):
-            log.debug("[AutoShutDown] Suspending...")
+            log.info("[AutoShutDown] Suspending...")
             if windows_check():
                 bForceClose=False
                 hibernate = False
@@ -146,7 +136,7 @@ class Core(CorePluginBase):
                 self.bus_iface.Suspend()
 
     def os_hibernate(self):
-            log.debug("[AutoShutDown] Hibernating...")
+            log.info("[AutoShutDown] Hibernating...")
             if windows_check():
                 bForceClose=False
                 hibernate = True
@@ -158,7 +148,7 @@ class Core(CorePluginBase):
                 self.bus_iface.Hibernate()
 
     def os_shutdown(self):
-            log.debug("[AutoShutDown] Shutting down...")
+            log.info("[AutoShutDown] Shutting down...")
             if windows_check():
                 timeout = 10
                 message = "Deluge AutoShutdown Plugin shutting down the system after %s secs.\
@@ -200,7 +190,7 @@ class Core(CorePluginBase):
                 log.error("Unable to determine Suspend or Hibernate flags")
                 #alternative if powerman does not work?
                 #/org/freedesktop/PowerManagement org.freedesktop.PowerManagement.CanSuspend
-        log.debug("[AutoShutDown] Power Flags, can suspend: %s, can hibernate: %s",
+        log.info("[AutoShutDown] Power Flags, can suspend: %s, can hibernate: %s",
                         self.config["can_suspend"], self.config["can_hibernate"])
         self.config.save()
 
