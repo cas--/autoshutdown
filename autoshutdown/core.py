@@ -52,7 +52,7 @@ if windows_check():
     from win32security import OpenProcessToken, LookupPrivilegeValue, AdjustTokenPrivileges
     from win32api import InitiateSystemShutdown, GetCurrentProcess, GetPwrCapabilities
     from ntsecuritycon import TOKEN_ADJUST_PRIVILEGES, TOKEN_QUERY, SE_SHUTDOWN_NAME, SE_PRIVILEGE_ENABLED
-elif osx_check()
+elif osx_check():
     #import subprocess
     pass
 else:
@@ -90,16 +90,16 @@ class Core(CorePluginBase):
             bus_path = UPOWER_PATH
             try:
                 bus = dbus.SystemBus()
-                self.bus_obj = bus.get_object(bus_name, bus_path)
+                self.bus_obj = bus.get_object(self.bus_name, bus_path)
             except:
                 log.debug("[AutoShutDown] Fallback to older dbus PowerManagement")
                 self.bus_name = POWERMAN
                 bus_path = POWERMAN_PATH
                 bus = dbus.Bus(dbus.Bus.TYPE_SESSION)
-                self.bus_obj = bus.get_object(bus_name, bus_path)
+                self.bus_obj = bus.get_object(self.bus_name, bus_path)
 
-            self.bus_iface = dbus.Interface(bus_obj, bus_name)
-            self.bus_iface_props = dbus.Interface(bus_obj, 'org.freedesktop.DBus.Properties')
+            self.bus_iface = dbus.Interface(self.bus_obj, self.bus_name)
+            self.bus_iface_props = dbus.Interface(self.bus_obj, 'org.freedesktop.DBus.Properties')
 
         self.config = deluge.configmanager.ConfigManager("autoshutdown.conf", DEFAULT_PREFS)
         self.check_suspend_hibernate_flags()
@@ -187,7 +187,7 @@ class Core(CorePluginBase):
         newPrivileges = [(id, SE_PRIVILEGE_ENABLED)]
         AdjustTokenPrivileges(htoken, 0, newPrivileges)
 
-    def check_suspend_hibernate_flags()
+    def check_suspend_hibernate_flags(self):
         self.config["can_hibernate"] = False
         self.config["can_suspend"] = False
         if windows_check():
@@ -198,7 +198,7 @@ class Core(CorePluginBase):
                 if pwr_states['SystemS1'] | pwr_states['SystemS2'] | pwr_states['SystemS3']:
                     self.config["can_suspend"] = True
             except KeyError, e:
-                log.error("[AutoShutdown] Error reading system power capabilities: %s", e
+                log.error("[AutoShutdown] Error reading system power capabilities: %s", e)
         else:
             # Possibly should also check SuspendAllowed and HibernateAllowed for permissions
             try:
