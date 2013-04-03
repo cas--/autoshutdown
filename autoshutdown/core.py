@@ -97,12 +97,11 @@ class Core(CorePluginBase):
         self.config = deluge.configmanager.ConfigManager("autoshutdown.conf", DEFAULT_PREFS)
         self.check_suspend_hibernate_flags()
 
-        component.get("EventManager").register_handler("TorrentFinishedEvent",
-                                                        self.on_event_torrent_finished)
+        component.get("EventManager").register_event_handler("TorrentFinishedEvent", self.on_event_torrent_finished)
 
     def disable(self):
         log.debug("[AutoShutDown] Disabling AutoShutDown...")
-        component.get("EventManager").deregister_handler(self.on_event_torrent_finished)
+        component.get("EventManager").deregister_event_handler(self.on_event_torrent_finished)
         self.config.save()
 
     def on_event_torrent_finished(self, alert):
