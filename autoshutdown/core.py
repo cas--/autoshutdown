@@ -108,7 +108,10 @@ class Core(CorePluginBase):
         log.debug("[AutoShutDown] Torrent finished event for %s", torrent_id)
         # calc how many of torrent right now
         downloading_torrents = component.get("Core").get_torrents_status({"state": "Downloading"}, ["name"])
-        log.info("[AutoShutDown]Total torrents waiting to complete: %s", len(downloading_torrents))
+        # core status might not be updated so ensure finished torrent is removed
+        downloading_torrents.pop(torrent_id, None)
+        log.info("[AutoShutDown] Total torrents waiting to complete: %s", len(downloading_torrents))
+        log.debug("[AutoShutDown] Waiting list: %s", downloading_torrents)
         if not downloading_torrents:
             self.power_action()
 
