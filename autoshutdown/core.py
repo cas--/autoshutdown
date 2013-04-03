@@ -135,13 +135,13 @@ class Core(CorePluginBase):
             log.debug("[AutoShutDown] Disabled, nothing to do")
             return
         if self.config["system_state"] == 'shutdown':
-            self.shutdown()
+            self.os_shutdown()
         elif self.config["system_state"] == 'hibernate':
-            self.hibernate()
+            self.os_hibernate()
         elif self.config["system_state"] == 'suspend':
-            self.suspend()
+            self.os_suspend()
 
-    def suspend(self):
+    def os_suspend(self):
             log.debug("[AutoShutDown] Suspending...")
             if windows_check():
                 bForceClose=False
@@ -153,7 +153,7 @@ class Core(CorePluginBase):
             else:
                 self.bus_iface.Suspend()
 
-    def hibernate(self):
+    def os_hibernate(self):
             log.debug("[AutoShutDown] Hibernating...")
             if windows_check():
                 bForceClose=False
@@ -165,7 +165,7 @@ class Core(CorePluginBase):
             else:
                 self.bus_iface.Hibernate()
 
-    def shutdown(self):
+    def os_shutdown(self):
             log.debug("[AutoShutDown] Shutting down...")
             if windows_check():
                 timeout = 10
@@ -208,8 +208,9 @@ class Core(CorePluginBase):
                 log.error("Unable to determine Suspend or Hibernate flags")
                 #alternative if powerman does not work?
                 #/org/freedesktop/PowerManagement org.freedesktop.PowerManagement.CanSuspend
-        log.debug("[AutoShutDown] Set Power Flags, Suspend: %s, Hibernate: %s",
-                    self.config["can_hibernate"], self.config["can_suspend"])
+        log.debug("[AutoShutDown] Power Flags, can suspend: %s, can hibernate: %s",
+                        self.config["can_suspend"], self.config["can_hibernate"])
+        self.config.save()
 
     def update(self):
         pass
