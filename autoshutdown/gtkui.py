@@ -62,11 +62,13 @@ class GtkUI(GtkPluginBase):
 
     def on_apply_prefs(self):
         log.debug("applying prefs for AutoShutdown")
-        config = {
-            "enable_hibernate":self.glade.get_widget("button_hibernate").get_active(),
-            "enable_shutdown":self.glade.get_widget("button_shutdown").get_active(),
-
-        }
+        config = {}
+        if self.glade.get_widget("button_hibernate").get_active():
+                config["system_state"] = 'hibernate'
+        elif self.glade.get_widget("button_shutdown").get_active():
+                config["system_state"] =  "shutdown"
+        elif self.glade.get_widget("button_suspend").get_active():
+                config["system_state"] = "suspend"
         client.autoshutdown.set_config(config)
 
     def on_show_prefs(self):
@@ -74,6 +76,9 @@ class GtkUI(GtkPluginBase):
 
     def cb_get_config(self, config):
         "callback for on show_prefs"
-        log.debug("callback for on show_prefs");
-        self.glade.get_widget("button_shutdown").set_active(config["enable_shutdown"])
-        self.glade.get_widget("button_hibernate").set_active(config["enable_hibernate"])
+        log.debug("callback for on show_prefs")
+        self.glade.get_widget("button_shutdown").set_active("shutdown" in config["system_state"])
+        self.glade.get_widget("button_hibernate").set_active("hibernate" in config["system_state"])
+        self.glade.get_widget("button_suspend").set_active("suspend" in config["system_state"])
+        self.glade.get_widget("button_hibernate").set_sensitive(config["can_hibernate"])
+        self.glade.get_widget("button_suspend").set_sensitive(config["can_suspend"])

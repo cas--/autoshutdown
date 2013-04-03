@@ -43,7 +43,7 @@ from setuptools import setup
 __plugin_name__ = "AutoShutdown"
 __author__ = "Calum Lind"
 __author_email__ = "calumlind@gmail.com"
-__version__ = "1.0"
+__version__ = "1.1"
 __url__ = "github"
 __license__ = "GPLv3"
 __description__ = "Shutdown your system once torrents are complete"
