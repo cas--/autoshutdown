@@ -50,7 +50,11 @@ if windows_check():
     import ctypes
     from win32security import OpenProcessToken, LookupPrivilegeValue, AdjustTokenPrivileges
     from win32api import InitiateSystemShutdown, GetCurrentProcess, GetPwrCapabilities
-    from ntsecuritycon import TOKEN_ADJUST_PRIVILEGES, TOKEN_QUERY, SE_SHUTDOWN_NAME, SE_PRIVILEGE_ENABLED
+    # Negate need for ntsecuritycon import
+    TOKEN_QUERY = 8
+    TOKEN_ADJUST_PRIVILEGES = 32
+    SE_SHUTDOWN_NAME = "SeShutdownPrivilege"
+    SE_PRIVILEGE_ENABLED = 2
 elif osx_check():
     #import subprocess
     pass
