@@ -108,7 +108,7 @@ class Core(CorePluginBase):
 
     def disable(self):
         log.debug("[AutoShutDown] Disabling plugin...")
-        component.get("EventManager").deregister_event_handler(self.on_event_torrent_finished)
+        component.get("EventManager").deregister_event_handler("TorrentFinishedEvent", self.on_event_torrent_finished)
         self.config.save()
 
     def on_event_torrent_finished(self, torrent_id):
