@@ -65,6 +65,8 @@ else:
     UPOWER_PATH = "/org/freedesktop/UPower"
     POWERMAN = 'org.freedesktop.PowerManagement'
     POWERMAN_PATH = '/org/freedesktop/PowerManagement'
+    LOGIN1 = "org.freedesktop.login1"
+    LOGIN1_PATH = "/org/freedesktop/login1"
 
 DEFAULT_PREFS = {
     "enabled"           : True,
@@ -83,20 +85,21 @@ class Core(CorePluginBase):
             self.disable()
 
         if not windows_check():
-            self.bus_name = UPOWER
-            bus_path = UPOWER_PATH
             try:
                 bus = dbus.SystemBus()
-                self.bus_obj = bus.get_object(self.bus_name, bus_path)
+                try:
+                    self.bus_name = LOGIN1
+                    self.bus_obj = bus.get_object(self.bus_name, LOGIN1_PATH)
+                except DBusException:
+                    self.bus_name = UPOWER
+                    self.bus_obj = bus.get_object(self.bus_name, UPOWER_PATH)
             except:
                 log.debug("[AutoShutDown] Fallback to older dbus PowerManagement")
-                self.bus_name = POWERMAN
-                bus_path = POWERMAN_PATH
                 bus = dbus.Bus(dbus.Bus.TYPE_SESSION)
-                self.bus_obj = bus.get_object(self.bus_name, bus_path)
+                self.bus_name = POWERMAN
+                self.bus_obj = bus.get_object(self.bus_name, POWERMAN_PATH)
 
             self.bus_iface = dbus.Interface(self.bus_obj, self.bus_name)
-            self.bus_iface_props = dbus.Interface(self.bus_obj, 'org.freedesktop.DBus.Properties')
 
         self.config = deluge.configmanager.ConfigManager("autoshutdown.conf", DEFAULT_PREFS)
         self.check_suspend_hibernate_flags()
@@ -191,10 +194,16 @@ class Core(CorePluginBase):
         else:
             # Possibly should also check SuspendAllowed and HibernateAllowed for permissions
             try:
-                self.config["can_suspend"] = bool(self.bus_iface_props.Get(self.bus_name, 'CanSuspend'))
-                self.config["can_hibernate"] = bool(self.bus_iface_props.Get(self.bus_name, 'CanHibernate'))
-            except:
-                log.error("Unable to determine Suspend or Hibernate flags")
+                if self.bus_name.endswith('login1'):
+                    mgr_iface = dbus.Interface(self.bus_obj, self.bus_name + '.Manager')
+                    self.config["can_suspend"] = mgr_iface.CanSuspend() == 'yes'
+                    self.config["can_hibernate"] = mgr_iface.CanHibernate() == 'yes'
+                else:
+                    bus_iface_props = dbus.Interface(self.bus_obj, 'org.freedesktop.DBus.Properties')
+                    self.config["can_suspend"] = bool(bus_iface_props.Get(self.bus_name, 'CanSuspend'))
+                    self.config["can_hibernate"] = bool(bus_iface_props.Get(self.bus_name, 'CanHibernate'))
+            except DBusException as ex:
+                log.error("Unable to determine Suspend or Hibernate flags: %s", ex)
                 #alternative if powerman does not work?
                 #/org/freedesktop/PowerManagement org.freedesktop.PowerManagement.CanSuspend
         log.info("[AutoShutDown] Power Flags, can suspend: %s, can hibernate: %s",
