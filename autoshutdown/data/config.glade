@@ -9,28 +9,15 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <widget class="GtkVBox" id="vbox1">
+          <widget class="GtkFrame" id="frame1">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
-            <property name="border_width">1</property>
-            <property name="homogeneous">True</property>
-            <child>
-              <widget class="GtkLabel" id="label1">
-                <property name="visible">True</property>
-                <property name="can_focus">False</property>
-                <property name="label" translatable="yes">Please choose action when all torrents finish:</property>
-              </widget>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">0</property>
-              </packing>
-            </child>
+            <property name="label_xalign">0</property>
+            <property name="shadow_type">none</property>
             <child>
               <widget class="GtkVBox" id="vbox2">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
-                <property name="homogeneous">True</property>
                 <child>
                   <widget class="GtkRadioButton" id="button_disable">
                     <property name="label" translatable="yes">Do nothing</property>
@@ -40,7 +27,6 @@
                     <property name="border_width">10</property>
                     <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
-                    <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                     <property name="group">button_shutdown</property>
                   </widget>
@@ -59,6 +45,7 @@
                     <property name="border_width">10</property>
                     <property name="use_action_appearance">False</property>
                     <property name="use_underline">True</property>
+                    <property name="active">True</property>
                     <property name="draw_indicator">True</property>
                   </widget>
                   <packing>
@@ -104,16 +91,23 @@
                   </packing>
                 </child>
               </widget>
+            </child>
+            <child>
+              <widget class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="label" translatable="yes">&lt;b&gt;Choose an action when all torrents finish:&lt;/b&gt;</property>
+                <property name="use_markup">True</property>
+              </widget>
               <packing>
-                <property name="expand">True</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
+                <property name="type">label_item</property>
               </packing>
             </child>
           </widget>
           <packing>
-            <property name="expand">True</property>
+            <property name="expand">False</property>
             <property name="fill">False</property>
+            <property name="padding">20</property>
             <property name="position">0</property>
           </packing>
         </child>
