@@ -90,16 +90,17 @@ class Core(CorePluginBase):
                 try:
                     self.bus_name = LOGIN1
                     self.bus_obj = bus.get_object(self.bus_name, LOGIN1_PATH)
+                    self.bus_iface = dbus.Interface(self.bus_obj, self.bus_name + '.Manager')
                 except DBusException:
                     self.bus_name = UPOWER
                     self.bus_obj = bus.get_object(self.bus_name, UPOWER_PATH)
+                    self.bus_iface = dbus.Interface(self.bus_obj, self.bus_name)
             except:
                 log.debug("[AutoShutDown] Fallback to older dbus PowerManagement")
                 bus = dbus.Bus(dbus.Bus.TYPE_SESSION)
                 self.bus_name = POWERMAN
                 self.bus_obj = bus.get_object(self.bus_name, POWERMAN_PATH)
-
-            self.bus_iface = dbus.Interface(self.bus_obj, self.bus_name)
+                self.bus_iface = dbus.Interface(self.bus_obj, self.bus_name)
 
         self.config = deluge.configmanager.ConfigManager("autoshutdown.conf", DEFAULT_PREFS)
         self.check_suspend_hibernate_flags()
@@ -143,7 +144,7 @@ class Core(CorePluginBase):
                     ctypes.windll.Powrprof.SetSuspendState, (hibernate, bForceClose, False)
                 )
             else:
-                self.bus_iface.Suspend()
+                self.bus_iface.Suspend(False)
 
     def os_hibernate(self):
             log.info("[AutoShutDown] Hibernating...")
@@ -155,7 +156,7 @@ class Core(CorePluginBase):
                     ctypes.windll.Powrprof.SetSuspendState, (hibernate, bForceClose, False)
                 )
             else:
-                self.bus_iface.Hibernate()
+                self.bus_iface.Hibernate(False)
 
     def os_shutdown(self):
             log.info("[AutoShutDown] Shutting down...")
@@ -167,7 +168,7 @@ class Core(CorePluginBase):
                 self.adjust_windows_shutdown_privileges()
                 InitiateSystemShutdown(None, message, timeout, 1, 0)
             else:
-                self.bus_iface.Shutdown()
+                self.bus_iface.Shutdown(False)
 
     def adjust_windows_shutdown_privileges(self):
         if not windows_check():
@@ -192,17 +193,16 @@ class Core(CorePluginBase):
             except KeyError, e:
                 log.error("[AutoShutdown] Error reading system power capabilities: %s", e)
         else:
-            # Possibly should also check SuspendAllowed and HibernateAllowed for permissions
             try:
                 if self.bus_name.endswith('login1'):
-                    mgr_iface = dbus.Interface(self.bus_obj, self.bus_name + '.Manager')
-                    self.config["can_suspend"] = mgr_iface.CanSuspend() == 'yes'
-                    self.config["can_hibernate"] = mgr_iface.CanHibernate() == 'yes'
+                    self.config["can_suspend"] = self.bus_iface.CanSuspend() == 'yes'
+                    self.config["can_hibernate"] = self.bus_iface.CanHibernate() == 'yes'
                 else:
+                    # Possibly should also check SuspendAllowed and HibernateAllowed for permissions
                     bus_iface_props = dbus.Interface(self.bus_obj, 'org.freedesktop.DBus.Properties')
                     self.config["can_suspend"] = bool(bus_iface_props.Get(self.bus_name, 'CanSuspend'))
                     self.config["can_hibernate"] = bool(bus_iface_props.Get(self.bus_name, 'CanHibernate'))
-            except DBusException as ex:
+            except dbus.DBusException as ex:
                 log.error("Unable to determine Suspend or Hibernate flags: %s", ex)
                 #alternative if powerman does not work?
                 #/org/freedesktop/PowerManagement org.freedesktop.PowerManagement.CanSuspend
