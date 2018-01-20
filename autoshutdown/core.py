@@ -23,9 +23,9 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with deluge.    If not, write to:
-# 	The Free Software Foundation, Inc.,
-# 	51 Franklin Street, Fifth Floor
-# 	Boston, MA  02110-1301, USA.
+#   The Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor
+#   Boston, MA  02110-1301, USA.
 #
 #    In addition, as a special exception, the copyright holders give
 #    permission to link the code of portions of this program with the OpenSSL
@@ -72,7 +72,8 @@ DEFAULT_PREFS = {
     "enabled"           : True,
     "system_state"      : None,
     "can_hibernate"     : False,
-    "can_suspend"       : False
+    "can_suspend"       : False,
+    "once"              : False
 }
 
 class Core(CorePluginBase):
@@ -123,10 +124,18 @@ class Core(CorePluginBase):
         if not downloading_torrents:
             self.power_action()
 
+    def once_action(self):
+        #reset enabled
+        if self.config["once"]:
+            self.config["enabled"] = False
+            self.config.save()
+
     def power_action(self):
         if not self.config["enabled"]:
             log.debug("[AutoShutDown] Disabled, nothing to do")
             return
+        #if "enabled" and "once" then disable
+        self.once_action()
         if self.config["system_state"] == 'shutdown':
             self.os_shutdown()
         elif self.config["system_state"] == 'hibernate':
