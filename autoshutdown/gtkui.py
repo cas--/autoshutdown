@@ -82,10 +82,17 @@ class GtkUI(GtkPluginBase):
     def cb_get_config(self, config):
         "callback for on show_prefs"
         log.debug("callback for on show_prefs")
-        self.glade.get_widget("button_shutdown").set_active("shutdown" in config["system_state"])
-        self.glade.get_widget("button_hibernate").set_active("hibernate" in config["system_state"])
-        self.glade.get_widget("button_suspend").set_active("suspend" in config["system_state"])
+
+        self.glade.get_widget("button_shutdown").set_active(
+            "shutdown" == config["system_state"])
+        self.glade.get_widget("button_hibernate").set_active(
+            "hibernate" == config["system_state"])
+        self.glade.get_widget("button_suspend").set_active(
+            "suspend" == config["system_state"])
         self.glade.get_widget("once_check").set_active(config["once"])
-        self.glade.get_widget("button_disable").set_active(not config["enabled"])
-        self.glade.get_widget("button_hibernate").set_sensitive(config["can_hibernate"])
-        self.glade.get_widget("button_suspend").set_sensitive(config["can_suspend"])
+        self.glade.get_widget("button_disable").set_active(
+            not config["enabled"] or not config["system_state"])
+        self.glade.get_widget("button_hibernate").set_sensitive(
+            config["can_hibernate"])
+        self.glade.get_widget("button_suspend").set_sensitive(
+            config["can_suspend"])
