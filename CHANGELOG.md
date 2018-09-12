@@ -1,6 +1,6 @@
 # Deluge Autoshutdown Changelog
 
-## [Unreleased]
+## [1.5.0] - 2018-09-12
 ### Added
 - A 'once' option to disable further actions after action completed.
 
